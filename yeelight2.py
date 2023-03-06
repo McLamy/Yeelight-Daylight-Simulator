@@ -6,18 +6,22 @@ from suntime import Sun
 
 
 def get_current_cct():
-    # Düsseldorf-Koordinaten
+    # Insert your location coordinates here (example is Düsseldorf, Germany)
     lat = 51.2277
     lng = 6.7735
 
-    # Aktuelles Datum und Uhrzeit
+    # Time and Date now
     now = datetime.datetime.now(pytz.timezone('Europe/Berlin'))
-    now = now + datetime.timedelta(hours=0)
 
-    # Sonnenaufgang/-untergang-Zeiten berechnen
+    # Change the "0" to a value of your choice to simulate a specific time of the day
+    # now = now + datetime.timedelta(hours=0)
+
+    # Calculate sunrise and sunset
     sun = Sun(lat, lng)
-    sunrise = sun.get_sunrise_time().replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Berlin'))
-    sunset = sun.get_sunset_time().replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Berlin'))
+    sunrise = sun.get_sunrise_time().replace(
+        tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Berlin'))
+    sunset = sun.get_sunset_time().replace(
+        tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/Berlin'))
 
     sunrise_minutes = sunrise.hour * 60 + sunrise.minute
     sunset_minutes = sunset.hour * 60 + sunset.minute
@@ -29,13 +33,14 @@ def get_current_cct():
 
     print(time_of_day)
 
-    # Berechne CCT basierend auf einer Bell-Kurve
+    # Calculate the current CCT and use a Bell-Curve
     if sunrise_minutes <= time_of_day < sunset_minutes:
 
         peak_time = (sunrise_minutes + sunset_minutes) / 2
         print("peak: ", peak_time)
         std_dev = (peak_time - sunrise_minutes) / 3
-        cct = 1700 + 3800 * math.exp(-0.5 * ((time_of_day - peak_time) / std_dev) ** 2)
+        cct = 1700 + 3800 * \
+            math.exp(-0.5 * ((time_of_day - peak_time) / std_dev) ** 2)
     elif time_of_day < sunrise_minutes or time_of_day >= sunset_minutes:
         cct = 2700
     else:
@@ -49,10 +54,10 @@ def kelvin_to_rgb(temperature):
     # Calculate the CIE chromaticity coordinates
     if temperature <= 4000:
         x = -0.2661239 * ((10 ** 9) / (temperature ** 3)) - 0.2343580 * ((10 ** 6) / (temperature ** 2)) + 0.8776956 * (
-                    10 ** 3) / temperature + 0.179910
+            10 ** 3) / temperature + 0.179910
     else:
         x = -3.0258469 * ((10 ** 9) / (temperature ** 3)) + 2.1070379 * ((10 ** 6) / (temperature ** 2)) + 0.2226347 * (
-                    10 ** 3) / temperature + 0.240390
+            10 ** 3) / temperature + 0.240390
     y = -1.1063814 * x ** 3 - 1.34811020 * x ** 2 + 2.18555832 * x - 0.20219683
 
     # Calculate the XYZ tristimulus values
@@ -76,7 +81,7 @@ def kelvin_to_rgb(temperature):
 
 # Output
 rgb = kelvin_to_rgb(get_current_cct())
-print("old",rgb)
+print("old", rgb)
 
 
 def adjust_color_temperature(rgb, warmth):
@@ -101,12 +106,13 @@ def adjust_color_temperature(rgb, warmth):
 
     return (r, g, b)
 
+
 # Warmer blue color
 new_rgb = adjust_color_temperature(rgb, 0.5)
 print("new", new_rgb)
 
 
-# Connect to the Yeelight bulb
+# Connect to the Yeelight bulb – Change the IP to the IP Adress of the Yeelight in your network
 bulb = Bulb("192.168.178.42")
 
 # Turn the bulb on
